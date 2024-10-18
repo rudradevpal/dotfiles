@@ -1,0 +1,37 @@
+alias k="kubectl"
+alias kx="kubectx"
+alias kn="kubens"
+
+alias kxadd='f() { [ $# -ne 2 ] && { echo "Usage: add_kubeconfig <path-to-kubeconfig> <new-context-name>"; return 1; }; KUBECONFIG_PATH="$1" NEW_CONTEXT_NAME="$2"; [ ! -f "$KUBECONFIG_PATH" ] && { echo "Kubeconfig file not found: $KUBECONFIG_PATH"; return 1; }; CURRENT_KUBECONFIG="$HOME/.kube/config"; KUBECONFIG="$CURRENT_KUBECONFIG:$KUBECONFIG_PATH" kubectl config view --flatten > "$CURRENT_KUBECONFIG.new"; mv "$CURRENT_KUBECONFIG.new" "$CURRENT_KUBECONFIG"; OLD_CONTEXT_NAME="$(kubectl config get-contexts --kubeconfig="$KUBECONFIG_PATH" -o name | head -n 1)"; kubectl config get-contexts | grep -q "$NEW_CONTEXT_NAME" && { suffix=1; while kubectl config get-contexts | grep -q "${NEW_CONTEXT_NAME}-${suffix}"; do suffix=$((suffix + 1)); done; NEW_CONTEXT_NAME="${NEW_CONTEXT_NAME}-${suffix}"; }; kubectl config rename-context "$OLD_CONTEXT_NAME" "$NEW_CONTEXT_NAME"; kubectl config set-context "$NEW_CONTEXT_NAME" --namespace=default; echo "Kubeconfig from $KUBECONFIG_PATH has been added with context name '$NEW_CONTEXT_NAME' and namespace set to 'default.'"; }; f'
+
+alias kxdel='CONTEXT_NAME=$(kubectl config get-contexts -o name | fzf --reverse) && [ -n "$CONTEXT_NAME" ] && kubectl config delete-context "$CONTEXT_NAME" && echo "Context \"$CONTEXT_NAME\" deleted." || echo "No context selected."'
+
+# Alias to select a pod and view logs using fzf
+alias klogs='POD=$(kubectl get pods -o jsonpath="{.items[*].metadata.name}" | tr " " "\n" | fzf --reverse) && [ -n "$POD" ] && kubectl logs "$POD" || echo "No pod selected."'
+
+# Alias to select a pod and describe it using fzf
+alias kdescpo='POD=$(kubectl get pods -o jsonpath="{.items[*].metadata.name}" | tr " " "\n" | fzf --reverse) && [ -n "$POD" ] && kubectl describe pod "$POD" || echo "No pod selected."'
+
+# Alias to delete a pod using fzf
+alias kdelpo='POD=$(kubectl get pods -o jsonpath="{.items[*].metadata.name}" | tr " " "\n" | fzf --reverse) && [ -n "$POD" ] && kubectl delete pod "$POD" && echo "Pod \"$POD\" deleted." || echo "No pod selected."'
+
+# Alias to select a pod and view logs for a specific container using fzf
+alias klogsc='POD=$(kubectl get pods -o jsonpath="{.items[*].metadata.name}" | tr " " "\n" | fzf --reverse); CONTAINER=$(kubectl get pod "$POD" -o jsonpath="{.spec.containers[*].name}" | tr " " "\n" | fzf --reverse); [ -n "$POD" ] && [ -n "$CONTAINER" ] && kubectl logs "$POD" -c "$CONTAINER" || echo "No pod or container selected."'
+
+# Alias to select a deployment and describe it using fzf
+alias kdescdeploy='DEPLOYMENT=$(kubectl get deployments -o jsonpath="{.items[*].metadata.name}" | tr " " "\n" | fzf --reverse) && [ -n "$DEPLOYMENT" ] && kubectl describe deployment "$DEPLOYMENT" || echo "No deployment selected."'
+
+# Alias to select a service and describe it using fzf
+alias kdescsvc='SERVICE=$(kubectl get svc -o jsonpath="{.items[*].metadata.name}" | tr " " "\n" | fzf --reverse) && [ -n "$SERVICE" ] && kubectl describe svc "$SERVICE" || echo "No service selected."'
+
+# Alias to select any Kubernetes resource (pod, service, deployment, etc.) and describe it using fzf
+alias kdescres='RESOURCE=$(kubectl get all --all-namespaces -o jsonpath="{.items[*].metadata.name}" | tr " " "\n" | fzf --reverse) && [ -n "$RESOURCE" ] && kubectl describe "$RESOURCE" || echo "No resource selected."'
+
+# Alias to select a pod and exec into it using fzf
+alias kexec='POD=$(kubectl get pods -o jsonpath="{.items[*].metadata.name}" | tr " " "\n" | fzf --reverse) && [ -n "$POD" ] && kubectl exec -it "$POD" -- /bin/bash || echo "No pod selected."'
+
+# Alias to select a node and describe it using fzf
+alias kdescnodes='NODE=$(kubectl get nodes -o jsonpath="{.items[*].metadata.name}" | tr " " "\n" | fzf --reverse) && [ -n "$NODE" ] && kubectl describe node "$NODE" || echo "No node selected."'
+
+# Alias to delete a namespace using fzf
+alias kdelns='NAMESPACE=$(kubectl get ns -o jsonpath="{.items[*].metadata.name}" | tr " " "\n" | fzf --reverse) && [ -n "$NAMESPACE" ] && kubectl delete ns "$NAMESPACE" && echo "Namespace \"$NAMESPACE\" deleted." || echo "No namespace selected."'
