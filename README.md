@@ -1,7 +1,3 @@
-Here’s an improved README for your dotfiles repository, providing a full guide for installation and setup on macOS, Ubuntu, and Kali Linux:
-
----
-
 # Dotfiles
 
 This repository contains my personal dotfiles and configuration for a more productive command-line experience. It includes setup instructions for **macOS**, **Ubuntu**, and **Kali Linux**.
